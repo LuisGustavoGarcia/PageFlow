@@ -9,10 +9,19 @@ for (let div of $('div')) {
     $(div).replaceWith($(div).children());
 }
 
+function isHeader(tag) {
+    for (let tagType of headerTags) {
+        if (tagType.toUpperCase() == tag.toUpperCase()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function traverseElements(nextElement, header) {
     // stop adding once there are no more siblings
     // or another header is reached
-    if (!nextElement || nextElement.nodeName === 'H2') 
+    if (!nextElement || isHeader(nextElement.nodeName))
         return;
     // save text in paragraphs and span tags
     if (nextElement.nodeName === 'P' || nextElement.nodeName === 'SPAN' 
@@ -28,14 +37,14 @@ function traverseElements(nextElement, header) {
     // go to the next sibling
     traverseElements(nextElement.nextElementSibling, header);
 }
-
+// TODO: Make enable/disable, fix page breaking
 for (var tagType of headerTags) {
     var tags = $(tagType);
     for (var index in tags) {
-        var h2Tag = tags[index];
-        if (h2Tag && h2Tag.innerText && h2Tag.innerText.trim() !== '') {
-            var header = {'text': h2Tag.innerText.trim(), 'p': [], 'a': []};
-            var nextElement = h2Tag.nextElementSibling;
+        var tag = tags[index];
+        if (tag && tag.innerText && tag.innerText.trim() !== '') {
+            var header = {'text': tag.innerText.trim(), 'p': [], 'a': []};
+            var nextElement = tag.nextElementSibling;
             traverseElements(nextElement, header);
             headers.push(header);
         }
