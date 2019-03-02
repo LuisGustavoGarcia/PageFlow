@@ -2,11 +2,14 @@
   "name": "PageFlow",
   "version": "1.0",
   "description": "Webpage interaction for the visually impaired.",
-  "permissions": ["declarativeContent"],
+  "permissions": ["declarativeContent", "tts"],
   "manifest_version": 2,
-  "background": {"page": "background.html"},
+  "background": {
+    "scripts": ["jquery-3.3.1.min.js","background.js"],
+    "persistent": false
+  },
   "content_scripts": [ {
-    "js": [ "jquery-3.3.1.min.js", "background.js" ],
+    "js": [ "jquery-3.3.1.min.js", "page-parser.js" ],
     "matches": [ "http://*/*", "https://*/*"]
   }]
 }
