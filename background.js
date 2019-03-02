@@ -1,8 +1,6 @@
 // This file will handle speech and other chrome add-on functionality.
 
-
 // How to send messages back and forth between background.js and page-parser.js
-
 // chrome.runtime.onConnect.addListener(function(port) {
 //     console.assert(port.name == "joke");
 //     port.onMessage.addListener(function(msg) {
