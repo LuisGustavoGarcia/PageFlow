@@ -1,32 +1,30 @@
 // This file will handle speech and other chrome add-on functionality.
 
+// Read the response from the user, and continue.
+function readMsg(msg){
+    if(msg.tts != "" && msg.tts != null){
+        readString(msg.tts, msg.callback);
+    }
+}
 
-// How to send messages back and forth between background.js and page-parser.js
+/* Uses the text-to-speech engine, then calls a chosen callback when string has been read */
+function readString(dataStr, readStringCallback){
+    chrome.tts.speak(dataStr, {
+        requiredEventTypes: ['end'],
+        onEvent: function(event) {
+            if(event.type === 'end') {
+                readStringCallback();
+            }
+        }
+    });
+}
 
-// chrome.runtime.onConnect.addListener(function(port) {
-//     console.assert(port.name == "joke");
-//     port.onMessage.addListener(function(msg) {
-//       if (msg.joke == "Why are Canadians so good at sports?")
-//       {
-//         chrome.tts.speak(msg.joke, {
-//             requiredEventTypes: ['end'],
-//             onEvent: function(event) {
-//                 if(event.type === 'end') {
-//                     port.postMessage({question: "Why?"});
-//                 }
-//             }
-//         });
-//       }
-//       else if (msg.answer == "They always bring their eh game")
-//       {
-//         chrome.tts.speak(msg.answer, {
-//             requiredEventTypes: ['end'],
-//             onEvent: function(event) {
-//                 if(event.type === 'end') {
-//                     port.postMessage({response: "That sucked."});
-//                 }
-//             }
-//         });
-//       }
-//     });
-// });
+/* ================ Add Functions Above This ================ */
+
+/* This communicates with the page-parser.js file */
+chrome.runtime.onConnect.addListener(function(port) {
+    console.assert(port.name == "userInteraction");
+    port.onMessage.addListener(function(msg){
+        readMsg(msg);
+    });
+});
