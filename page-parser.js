@@ -1,15 +1,5 @@
 // This file will handle DOM parsing
-const BREAKER = '↵';
 // Use Jquery to write to the end of the body tag.
-// //$("body").append("TEST");
-// const bodyTag = $('body')[0];
-// console.log($('body'));
-// bodyTag.childNodes.forEach(node => {
-//     // console.log(node['nodeName']);
-//     if (node && node['nodeName'] !== '#text' && node['nodeName'] !== 'SCRIPT') {
-//         // console.log(node);
-//     } 
-// });
 var h2Tags = $('h2');
 // console.log(h2Tags);
 var headers = [];
@@ -33,3 +23,16 @@ for (var index in h2Tags) {
 }
 
 console.log(headers);
+//$("body").append("TEST");
+
+
+// How to send messages back and forth between background.js and page-parser.js
+// var port = chrome.runtime.connect({name: "joke"});
+// port.postMessage({joke: "Why are Canadians so good at sports?"});
+// port.onMessage.addListener(function(msg) {
+//   if (msg.question == "Why?")
+//   {
+//     console.log("This ran1");
+//     port.postMessage({answer: "They always bring their eh game"});
+//   }
+// });
