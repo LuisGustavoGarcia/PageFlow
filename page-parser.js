@@ -6,7 +6,16 @@ var headers = [];
 let tempBody = JSON.parse(JSON.stringify($('body').html()));
 // remove all divs
 for (let div of $('div')) {
-    $(div).replaceWith($(div).children());
+    var newDiv = $(div).children();
+    if (newDiv.length <= 0 ) {
+        //create p tag with innertext
+        var para = document.createElement("p");
+        para.innerHTML = div.innerText;
+        para.innerText = div.innerText;
+        console.log(div.innerText);
+        newDiv = para;
+    }
+    $(div).replaceWith(newDiv);
 }
 
 function isHeader(tag) {
@@ -30,7 +39,11 @@ function traverseElements(nextElement, header) {
     } else if (nextElement.nodeName === 'A') {
         // save links associated with this header
         header['a'].push({'text': nextElement.innerText.trim(), 'data': nextElement});
-    } else {
+    }
+    //else if (nextElement.childNodes.length == 0) {
+      //  header['p'].push(nextElement.innerText.trim());
+    //}
+    else {
         // search inside another other type of tag for the above tags
         traverseElements(nextElement.firstElementChild, header);
     }
@@ -53,7 +66,7 @@ for (var tagType of headerTags) {
 
 console.log(headers);
 
-$('body').replaceWith($(tempBody));
+//$('body').replaceWith($(tempBody));
 
 
 // How to send messages back and forth between background.js and page-parser.js
