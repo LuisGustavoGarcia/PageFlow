@@ -1,0 +1,12 @@
+.button {
+    background-color: #008CBA; /* blue */
+    border: none;
+    color: white;
+    padding: 8px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    width: 100px;
+    margin-bottom: 5px;
+  }
