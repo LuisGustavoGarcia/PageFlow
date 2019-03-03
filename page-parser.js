@@ -78,7 +78,7 @@ setupPage();
 
 /* Create a port to send messages back and forth between background.js and page-parser.js */
 var port = chrome.runtime.connect({name: "userInteraction"});
-var stream;
+var recorder;
 /* Send data to be read by the text-to-speech engine */
 function sendReadData(dataStr){
     port.postMessage({tts: dataStr});
@@ -94,7 +94,7 @@ function initAnnyang(){
         console.log("Initiating annyang");
         
         var commands = {
-            "please": function(){
+            "work": function(){
                 console.log("Testing.");
                 annyang.abort();
                 denyMicrophoneUse();
@@ -127,22 +127,39 @@ function hasGetUserMedia() {
 
 /* Prompt the user to allow their microphone to record audio. */
 function allowMicrophoneUse(){
-    if(hasGetUserMedia()){
+    // if(hasGetUserMedia()){
         var constraints = {audio: true};
-        stream = navigator.mediaDevices.getUserMedia(constraints);
-    }
+        navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+            window.streamReference = stream;
+            recorder = new MediaRecorder(stream);
+            // recorder.ondataavailable = function(e) {
+            //     var url = URL.createObjectURL(e.data);
+            //     var preview = document.createElement('audio');
+            //     preview.controls = true;
+            //     preview.src = url;
+            //     document.body.appendChild(preview);
+            // };
+            recorder.start();
+        });
+    // }
 }
 
 /* Disable microphone's ability to record audio. */
 function denyMicrophoneUse(){
-    console.log(stream);
-    stream.then(function(mediaStream){
-        // Do stuff?
+    recorder.stop();
+    if (!window.streamReference) return;
+
+    window.streamReference.getAudioTracks().forEach(function(track) {
+        console.log('stopping');
+        track.stop();
     });
+
+    window.streamReference = null;
 }
 
 /* ================ Add Functions Above This ================ */
 if(initAnnyang()){
+    allowMicrophoneUse();
     readAndTakeInput("Hello.");
 }
 
