@@ -5,11 +5,11 @@
   "permissions": ["declarativeContent", "tts"],
   "manifest_version": 2,
   "background": {
-    "scripts": ["jquery-3.3.1.min.js","background.js"],
+    "scripts": ["background.js"],
     "persistent": false
   },
   "content_scripts": [ {
-    "js": [ "jquery-3.3.1.min.js", "page-parser.js" ],
+    "js": [ "jquery-3.3.1.min.js","annyang.min.js", "page-parser.js" ],
     "matches": [ "http://*/*", "https://*/*"]
   }]
 }

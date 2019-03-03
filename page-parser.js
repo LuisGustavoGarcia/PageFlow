@@ -1,12 +1,15 @@
+var current_index = 0;
+var navigate_index = -1;
 var enable = true;
+var headers;
+var delay = "...";
 function setupPage() {
     // Use Jquery to write to the end of the body tag.
     if (enable) {
         const headerTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
-        var headers = [];
+        headers = [];
         // save body html before it gets altered to keep webpage looking the same
         var tempBody = $('body').clone();
-        // tempBodyStr = tempBody.html();
         // remove all divs
         for (let div of $('div')) {
             var newDiv = $(div).children();
@@ -73,13 +76,219 @@ function setupPage() {
 }
 
 setupPage();
-// How to send messages back and forth between background.js and page-parser.js
-// var port = chrome.runtime.connect({name: "joke"});
-// port.postMessage({joke: "Why are Canadians so good at sports?"});
-// port.onMessage.addListener(function(msg) {
-//   if (msg.question == "Why?")
-//   {
-//     console.log("This ran1");
-//     port.postMessage({answer: "They always bring their eh game"});
-//   }
-// });
+
+/* This file will handle DOM parsing */
+
+/* Create a port to send messages back and forth between background.js and page-parser.js */
+var port = chrome.runtime.connect({name: "userInteraction"});
+var recorder;
+/* Send data to be read by the text-to-speech engine */
+function sendReadData(dataStr){
+    port.postMessage({tts: dataStr, annyang: false});
+}
+
+/* Take input from voice */
+function takeInput(){
+    port.postMessage({readonly: true});
+}
+
+/* Send data to be read by the text-to-speech engine, then take user voice input afterwards. */
+function readAndTakeInput(dataStr){
+    port.postMessage({tts: dataStr, annyang: true});
+}
+
+/* Initialize speech-to-text library */
+function initAnnyang(){
+    if(annyang){
+        console.log("Initiating annyang");
+        
+        var commands = {
+            "analysis": function(){
+                console.log("Start parsing:");
+                annyang.abort();
+                denyMicrophoneUse();
+                current = headers[0];
+                console.log("Current:", current);
+                if(current && current.text.length > 0){
+                    console.log("Current_text:", current.text);
+                    readAndTakeInput(current.text);
+                }
+            },
+
+            "details": function(){
+                console.log("Header Details:");
+                var current = headers[current_index].p;
+                
+                var all_p = "";
+                for(var ultra of current){
+                    if(ultra != "" && ultra != null){
+                        console.log(ultra);
+                        all_p += ultra + delay; // You figure it out.
+                    }
+                }
+                annyang.abort();
+                denyMicrophoneUse();
+                if(all_p == ""){
+                    var extra = "";
+                    if(headers[current_index].a.length > 0){
+                        extra = "However, there are links available.";
+                    }
+                    readAndTakeInput("There are no remaining details" + delay + extra);
+                }else{
+                    readAndTakeInput(all_p);
+                }
+            },
+
+            "click (link)": function(){
+                console.log("Clicking:");
+                annyang.abort();
+                denyMicrophoneUse();
+                navigate_index = 0;
+                var current = headers[current_index].a[navigate_index];
+                window.location = current.data.href;
+                console.log(current.text);
+                readAndTakeInput("Clicking " + current.text);
+            },
+
+            "first link": function(){
+                console.log("Navigating:");
+                annyang.abort();
+                denyMicrophoneUse();
+                navigate_index = 0;
+                var current = headers[current_index].a[navigate_index];
+                console.log(current.text);
+                readAndTakeInput(current.text);
+            },
+
+            "last link": function(){
+                console.log("Navigating:");
+                annyang.abort();
+                denyMicrophoneUse();
+                navigate_index = headers[current_index].a.length - 1;
+                var current = headers[current_index].a[navigate_index];
+                console.log(current.text);
+                console.log(current);
+                readAndTakeInput(current.text);
+            },
+
+            "next link": function(){
+                console.log("Navigating:");
+                annyang.abort();
+                denyMicrophoneUse();
+                navigate_index += 1;
+                if(navigate_index >= headers[current_index].a.length){
+                    navigate_index = 0;
+                }
+                var current = headers[current_index].a[navigate_index];
+                console.log(current.text);
+                readAndTakeInput(current.text);
+            },
+
+            "(all) links": function(){
+                console.log("All links:");
+                annyang.abort();
+                denyMicrophoneUse();
+                var current = headers[current_index].a;
+                var all_links = "";
+                for(var link of current){
+                    all_links += link.text + delay;
+                }
+                console.log(all_links);
+                navigate_index = -1;
+                readAndTakeInput(all_links);
+            },
+
+            "next (header)": function(){
+                console.log("Next element:");
+                annyang.abort();
+                denyMicrophoneUse();
+                current_index+=1;
+                if(current_index < headers.length){
+                    var current = headers[current_index];
+                    if(current && current.text.length > 0){
+                        console.log(current.text);
+                        readAndTakeInput(current.text);
+                    }else{
+                        console.log("Some error ocurred finding the next sibling.");
+                    }
+                }else{
+                    readAndTakeInput("There are no more headers.");
+                }
+            },
+
+            "thank you (Kowalski)": function(){
+                console.log("stop:");
+                annyang.abort();
+                denyMicrophoneUse();
+                sendReadData("Anytime Skippa!");
+            },
+
+            "help": function(){
+                console.log("help:");
+                annyang.abort();
+                denyMicrophoneUse();
+                readAndTakeInput("Use the following commands to navigate the webpage: Start, Stop, Details, Next, Navigate");
+            },
+        }
+
+        // Add new commands, overwriting any existing ones.
+        annyang.addCommands(commands);
+
+        // I think a result match is already being handled.
+        //annyang.addCallback('resultMatch', handleResultMatch(result));
+        //annyang.addCallback('resultNoMatch', handleResultNoMatch());
+        return true;
+    }else{
+        return false;
+    }
+}
+
+/* Audio prompt to that user that we did not have a match on their input. */
+function handleResultNoMatch(){
+    annyang.abort();
+    console.log("Error: Did not match user input");
+    readAndTakeInput("I'm sorry, could you repeat that?");
+}
+
+/* Verify your browser has GetUserMedia API */
+function hasGetUserMedia() {
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+}
+
+/* Prompt the user to allow their microphone to record audio. */
+function allowMicrophoneUse(){
+    var constraints = {audio: true};
+    navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+        window.streamReference = stream;
+        recorder = new MediaRecorder(stream);
+        recorder.start();
+    });
+}
+
+/* Disable microphone's ability to record audio. */
+function denyMicrophoneUse(){
+    if(recorder.state == "inactive") return;
+
+    recorder.stop();
+
+    if (!window.streamReference) return;
+
+    window.streamReference.getAudioTracks()[0].stop();
+
+    window.streamReference = null;
+}
+
+/* ================ Add Functions Above This ================ */
+if(initAnnyang()){
+    readAndTakeInput("Kowalski, ");
+}
+
+/* Respond to messages from background.js here */
+port.onMessage.addListener(function(msg){
+    // Initialize
+    if (msg.annyang == true){
+        allowMicrophoneUse();
+        // Ask user to allow microphone input.
+        annyang.start({ autoRestart: true, continuous: true });
+    }
+});
