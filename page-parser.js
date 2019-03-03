@@ -103,7 +103,7 @@ function initAnnyang(){
         console.log("Initiating annyang");
         
         var commands = {
-            "analysis": function(){
+            "top (header)": function(){
                 console.log("Start parsing:");
                 annyang.abort();
                 denyMicrophoneUse();
@@ -216,11 +216,13 @@ function initAnnyang(){
                 }
             },
 
-            "thank you (Kowalski)": function(){
+            "stop": function(){
                 console.log("stop:");
                 annyang.abort();
                 denyMicrophoneUse();
-                sendReadData("Anytime Skippa!");
+                sendReadData("Goodbye!");
+                annyang.abort();
+                denyMicrophoneUse();
             },
 
             "help": function(){
@@ -241,13 +243,6 @@ function initAnnyang(){
     }else{
         return false;
     }
-}
-
-/* Audio prompt to that user that we did not have a match on their input. */
-function handleResultNoMatch(){
-    annyang.abort();
-    console.log("Error: Did not match user input");
-    readAndTakeInput("I'm sorry, could you repeat that?");
 }
 
 /* Verify your browser has GetUserMedia API */
@@ -280,7 +275,7 @@ function denyMicrophoneUse(){
 
 /* ================ Add Functions Above This ================ */
 if(initAnnyang()){
-    readAndTakeInput("Kowalski, ");
+    readAndTakeInput("Page Flow is ready for input.");
 }
 
 /* Respond to messages from background.js here */
