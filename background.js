@@ -1,22 +1,21 @@
 // This file will handle speech and other chrome add-on functionality.
 
-// Read the response from the user, and continue.
-function readMsg(msg){
+/* Uses the text-to-speech engine, then calls a chosen callback when string has been read */
+function readMsg(msg, port){
     if(msg.tts != "" && msg.tts != null){
-        readString(msg.tts, msg.callback);
+        chrome.tts.speak(msg.tts, {
+            requiredEventTypes: ['end'],
+            onEvent: function(event) {
+                if(event.type === 'end') {
+                    resumeAnnyang(port);
+                }
+            }
+        });
     }
 }
 
-/* Uses the text-to-speech engine, then calls a chosen callback when string has been read */
-function readString(dataStr, readStringCallback){
-    chrome.tts.speak(dataStr, {
-        requiredEventTypes: ['end'],
-        onEvent: function(event) {
-            if(event.type === 'end') {
-                readStringCallback();
-            }
-        }
-    });
+function resumeAnnyang(port){
+    port.postMessage({annyang: true});
 }
 
 /* ================ Add Functions Above This ================ */
@@ -25,6 +24,6 @@ function readString(dataStr, readStringCallback){
 chrome.runtime.onConnect.addListener(function(port) {
     console.assert(port.name == "userInteraction");
     port.onMessage.addListener(function(msg){
-        readMsg(msg);
+        readMsg(msg, port);
     });
 });
