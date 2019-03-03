@@ -6,8 +6,6 @@ function setupPage() {
         var headers = [];
         // save body html before it gets altered to keep webpage looking the same
         var tempBody = $('body').clone();
-        // tempBodyStr = tempBody.html();
-        console.log(tempBody);
         // remove all divs
         for (let div of $('div')) {
             $(div).replaceWith($(div).children());
