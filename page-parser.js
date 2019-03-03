@@ -6,9 +6,21 @@ function setupPage() {
         var headers = [];
         // save body html before it gets altered to keep webpage looking the same
         var tempBody = $('body').clone();
+<<<<<<< HEAD
+=======
+        // tempBodyStr = tempBody.html();
+>>>>>>> d9103d8a3f50556207172fe3d580352a3171fe2d
         // remove all divs
         for (let div of $('div')) {
-            $(div).replaceWith($(div).children());
+            var newDiv = $(div).children();
+            if (newDiv.length <= 0 ) {
+                //create p tag with innertext
+                var para = document.createElement("p");
+                para.innerHTML = div.innerText;
+                para.innerText = div.innerText;
+                newDiv = para;
+            }
+            $(div).replaceWith(newDiv);
         }
         
         function isHeader(tag) {
@@ -32,14 +44,18 @@ function setupPage() {
             } else if (nextElement.nodeName === 'A') {
                 // save links associated with this header
                 header['a'].push({'text': nextElement.innerText.trim(), 'data': nextElement});
-            } else {
+            } 
+                //else if (nextElement.childNodes.length == 0) {
+                //  header['p'].push(nextElement.innerText.trim());
+            //}
+            else {
                 // search inside another other type of tag for the above tags
                 traverseElements(nextElement.firstElementChild, header);
             }
             // go to the next sibling
             traverseElements(nextElement.nextElementSibling, header);
         }
-        // TODO: Make enable/disable, fix page breaking
+
         for (var tagType of headerTags) {
             var tags = $(tagType);
             for (var index in tags) {
@@ -58,6 +74,7 @@ function setupPage() {
         $('body').replaceWith($(tempBody));
     }
 }
+
 setupPage();
 // How to send messages back and forth between background.js and page-parser.js
 // var port = chrome.runtime.connect({name: "joke"});
